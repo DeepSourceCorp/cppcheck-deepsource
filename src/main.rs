@@ -1,5 +1,5 @@
 mod config;
-mod cpkerrs;
+mod cppcheck;
 mod fmtlogger;
 mod issue;
 mod result;
@@ -18,7 +18,7 @@ fn run_cppcheck<P>(executable: &str, files: Vec<P>, output_path: &str)
 where
     P: AsRef<Path>,
 {
-    let _output = Command::new("sh")
+    let output = Command::new("sh")
         .arg("-c")
         .arg(&format!(
             "{} {} --addon=misra --xml 2>{}",
@@ -30,7 +30,7 @@ where
             output_path
         ))
         .output();
-    log::trace!("{:#?}", _output);
+    log::trace!("{:#?}", output);
 }
 
 fn main() {
@@ -79,14 +79,13 @@ fn _main() -> Result<(), Box<dyn Error>> {
     let mut issue_occurrences = vec![];
     if let Some(cppcheck_results) = std::fs::read_to_string(cppcheck_errors_path)
         .ok()
-        .map(|src| quick_xml::de::from_str::<cpkerrs::Results>(&src).unwrap())
+        .map(|src| quick_xml::de::from_str::<cppcheck::Results>(&src).unwrap())
     {
         log::debug!("{:?}", cppcheck_results);
         for error in cppcheck_results.errors.error {
-            if let Some(issue_code) = cpkerrs::mapping(&error.id) {
+            if let Some(issue_code) = cppcheck::mapping(&error.id) {
                 let location = &error.location.unwrap()[0];
                 let issue_text = if error.msg.starts_with("misra") {
-                    // _ = issues::hashmap()[&issue_code];
                     format!(
                         "{} {}",
                         error.id,

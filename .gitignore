@@ -1,1 +1,3 @@
 /target
+/cppcheck_result.json
+/cppcheck_error.xml
