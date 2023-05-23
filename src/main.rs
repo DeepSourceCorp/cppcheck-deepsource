@@ -18,6 +18,8 @@ fn run_cppcheck<P>(executable: &str, files: Vec<P>, output_path: &str)
 where
     P: AsRef<Path>,
 {
+    let start = std::time::Instant::now();
+    log::debug!("Running cppcheck START :: {:?}", start.elapsed());
     let output = Command::new("sh")
         .arg("-c")
         .arg(&format!(
@@ -30,6 +32,7 @@ where
             output_path
         ))
         .output();
+    log::debug!("Ran cppcheck END :: {:?}", start.elapsed());
     log::trace!("{:#?}", output);
 }
 
