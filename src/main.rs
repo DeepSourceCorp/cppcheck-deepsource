@@ -19,19 +19,22 @@ where
     P: AsRef<Path>,
 {
     let start = std::time::Instant::now();
-    log::debug!("Running cppcheck START :: {:?}", start.elapsed());
-    let output = Command::new("sh")
-        .arg("-c")
-        .arg(&format!(
-            "{} {} --addon=misra --xml 2>{}",
-            executable,
-            files
-                .iter()
-                .map(|x| x.as_ref().display().to_string() + " ")
-                .collect::<String>(),
-            output_path
-        ))
-        .output();
+    let mut command = Command::new("sh");
+    command.arg("-c").arg(&format!(
+        "{} {} --addon=misra --xml 2>{}",
+        executable,
+        files
+            .iter()
+            .map(|x| x.as_ref().display().to_string() + " ")
+            .collect::<String>(),
+        output_path
+    ));
+    log::debug!(
+        "Running cppcheck START :: {:?} \n command: {:?}",
+        start.elapsed(),
+        command
+    );
+    let output = command.output();
     log::debug!("Ran cppcheck END :: {:?}", start.elapsed());
     log::trace!("{:#?}", output);
 }
