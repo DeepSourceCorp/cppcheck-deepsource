@@ -21,7 +21,7 @@ where
     let output = Command::new("sh")
         .arg("-c")
         .arg(&format!(
-            "{} {} --addon=misra --xml 2>{}",
+            "{} {} --std=c99 --addon=misra --xml 2>{}",
             executable,
             files
                 .iter()
@@ -84,7 +84,9 @@ fn _main() -> Result<(), Box<dyn Error>> {
         log::debug!("{:?}", cppcheck_results);
         for error in cppcheck_results.errors.error {
             if let Some(issue_code) = cppcheck::mapping(&error.id) {
-                let location = &error.location.unwrap()[0];
+                let Some(location) = error.location.as_ref().and_then(|l| l.get(0)) else {
+                    continue;
+                };
                 let issue_text = if error.msg.starts_with("misra") {
                     format!(
                         "{} {}",
@@ -114,6 +116,7 @@ fn _main() -> Result<(), Box<dyn Error>> {
             }
         }
     }
+
     let json_output = serde_json::to_string(&issue_occurrences);
     log::debug!(
         "{}",
@@ -125,12 +128,8 @@ fn _main() -> Result<(), Box<dyn Error>> {
         "{}".to_string()
     });
 
-    use std::io::Write;
-    write!(
-        std::fs::File::create(toolbox_directory.join("cppcheck_result.json"))?,
-        "{}",
-        src
-    )?;
+    let result_json = toolbox_directory.join("cppcheck_result.json");
+    std::fs::write(result_json, src)?;
 
     Ok(())
 }

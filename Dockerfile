@@ -32,6 +32,14 @@ RUN mkdir /sentry-sdk \
 && cmake -B ./build \
 && cmake --build ./build --parallel \
 && cmake --install ./build --prefix "${SENTRY_INSTALL_DIR}"
+
+# Install spdlog
+RUN git clone https://github.com/gabime/spdlog.git \
+  && cd spdlog \
+  && cmake -B build \
+  && cmake --build ./build --parallel \
+  && cd build && make install
+
 # -----------------------------------------------------------
 # End
 # -----------------------------------------------------------
