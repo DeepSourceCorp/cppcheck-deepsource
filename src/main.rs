@@ -23,7 +23,7 @@ where
     let output = Command::new("sh")
         .arg("-c")
         .arg(&format!(
-            "{} {} --std=c99 --addon=misra --xml 2>{}",
+            "{} {} --addon=misra --xml 2>{}",
             executable,
             files
                 .iter()
