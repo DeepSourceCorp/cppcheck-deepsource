@@ -21,7 +21,7 @@ where
     let start = std::time::Instant::now();
     let mut command = Command::new("sh");
     command.arg("-c").arg(&format!(
-        "{} {} --addon=misra --xml 2>{}",
+        "{} {} -j 6 --addon=misra --xml 2>{}",
         executable,
         files
             .iter()
