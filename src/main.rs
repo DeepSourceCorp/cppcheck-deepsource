@@ -7,7 +7,7 @@ mod result;
 use std::{
     error::Error,
     path::{Path, PathBuf},
-    process::{self, Command},
+    process::{self, Command, Stdio},
 };
 
 use crate::config::AnalyzerConfig;
@@ -20,15 +20,19 @@ where
 {
     let start = std::time::Instant::now();
     let mut command = Command::new("sh");
-    command.arg("-c").arg(&format!(
-        "{} {} -j 6 --addon=misra --xml 2>{}",
-        executable,
-        files
-            .iter()
-            .map(|x| x.as_ref().display().to_string() + " ")
-            .collect::<String>(),
-        output_path
-    ));
+    command
+        .arg("-c")
+        .arg(&format!(
+            "{} {} -j 6 --addon=misra --xml 2>{}",
+            executable,
+            files
+                .iter()
+                .map(|x| x.as_ref().display().to_string() + " ")
+                .collect::<String>(),
+            output_path
+        ))
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit());
     log::debug!(
         "Running cppcheck START :: {:?} \n command: {:?}",
         start.elapsed(),
