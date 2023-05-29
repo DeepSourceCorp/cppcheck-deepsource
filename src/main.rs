@@ -5,6 +5,7 @@ mod issue;
 mod result;
 
 use std::{
+    collections::HashSet,
     error::Error,
     path::{Path, PathBuf},
     process::{self, Command, Stdio},
@@ -12,24 +13,38 @@ use std::{
 
 use crate::config::AnalyzerConfig;
 
-const TOOLBOX_PATH: &str = "TOOLBOX_PATH";
+use env_struct::env_struct;
+env_struct! {
+    #[derive(Debug)]
+    pub struct Env {
+        pub toolbox_path = "/toolbox".into(),
+        pub code_path = "/code".into(),
+    }
+}
 
-fn run_cppcheck<P>(executable: &str, files: Vec<P>, output_path: &str)
-where
-    P: AsRef<Path>,
-{
+env_struct! {
+    #[derive(Debug)]
+    pub struct CppcheckEnv {
+        pub cppcheck_cache_path,
+    }
+}
+
+fn run_cppcheck<'a>(executable: &str, code_path: impl AsRef<str>, output_path: impl AsRef<Path>) {
     let start = std::time::Instant::now();
     let mut command = Command::new("sh");
+    let cppcheck_build_dir = if let Ok(cppcheck_env) = CppcheckEnv::try_load_from_env() {
+        format!("--cppcheck-build-dir={}", cppcheck_env.cppcheck_cache_path)
+    } else {
+        "".to_string()
+    };
     command
         .arg("-c")
         .arg(&format!(
-            "{} {} -j 6 --addon=misra --xml 2>{}",
+            "{} {} -l 6 --addon=misra --xml --output-file={} {}",
             executable,
-            files
-                .iter()
-                .map(|x| x.as_ref().display().to_string() + " ")
-                .collect::<String>(),
-            output_path
+            code_path.as_ref(),
+            output_path.as_ref().display(),
+            cppcheck_build_dir
         ))
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
@@ -56,38 +71,31 @@ fn main() {
 }
 
 fn _main() -> Result<(), Box<dyn Error>> {
-    let toolbox_directory = PathBuf::from(std::env::var(TOOLBOX_PATH).unwrap_or_else(|_| {
-        log::warn!("`TOOLBOX_PATH` env not set, defaulting to `/toolbox`");
-        "/toolbox".to_string()
-    }));
+    let env = Env::load_from_env();
+    let toolbox_directory = PathBuf::from(env.toolbox_path);
     let cppcheck_executable = "cppcheck";
-    let cppcheck_errors_path = toolbox_directory.join("cppcheck_error.xml");
+    let cppcheck_output_path = toolbox_directory.join("cppcheck_error.xml");
     let analysis_config_path = toolbox_directory.join("analysis_config.json");
-    let files_iter = std::fs::read_to_string(&analysis_config_path)
-        .ok()
-        .map(|s| serde_json::from_str::<AnalyzerConfig>(&s).ok())
-        .flatten()
-        .map_or_else(
-            || {
-                log::error!(
-                    "Failed to load analysis config, at `{}`, using empty file list.",
-                    analysis_config_path.display()
-                );
-                Vec::default()
-            },
-            AnalyzerConfig::cxx_files,
-        );
-
-    run_cppcheck(
-        cppcheck_executable,
-        files_iter,
-        cppcheck_errors_path
-            .to_str()
-            .unwrap_or("/toolbox/cppcheck_error.xml"),
+    let files_set: HashSet<PathBuf> = HashSet::from_iter(
+        std::fs::read_to_string(&analysis_config_path)
+            .ok()
+            .and_then(|s| serde_json::from_str::<AnalyzerConfig>(&s).ok())
+            .map_or_else(
+                || {
+                    log::error!(
+                        "Failed to load analysis config, at `{}`, using empty file list.",
+                        analysis_config_path.display()
+                    );
+                    Vec::default()
+                },
+                AnalyzerConfig::cxx_files,
+            ),
     );
 
+    run_cppcheck(cppcheck_executable, env.code_path, &cppcheck_output_path);
+
     let mut issue_occurrences = vec![];
-    if let Some(cppcheck_results) = std::fs::read_to_string(cppcheck_errors_path)
+    if let Some(cppcheck_results) = std::fs::read_to_string(cppcheck_output_path)
         .ok()
         .map(|src| quick_xml::de::from_str::<cppcheck::Results>(&src).unwrap())
     {
@@ -97,6 +105,9 @@ fn _main() -> Result<(), Box<dyn Error>> {
                 let Some(location) = error.location.as_ref().and_then(|l| l.get(0)) else {
                     continue;
                 };
+                if !files_set.contains(&PathBuf::from(&location.file)) {
+                    continue;
+                }
                 let issue_text = if error.msg.starts_with("misra") {
                     format!(
                         "{} {}",

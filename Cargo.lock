@@ -24,12 +24,19 @@ name = "cppcheck-deepsource"
 version = "0.2.0"
 dependencies = [
  "atty",
+ "env_struct",
  "log",
  "quick-xml",
  "serde",
  "serde_json",
  "walkdir",
 ]
+
+[[package]]
+name = "env_struct"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "262a034c48a8051d032efcd1d546cb63a2c437d2be2731725df610daa13efe27"
 
 [[package]]
 name = "hermit-abi"
