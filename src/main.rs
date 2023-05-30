@@ -31,29 +31,25 @@ env_struct! {
 
 fn run_cppcheck<'a>(executable: &str, code_path: impl AsRef<str>, output_path: impl AsRef<Path>) {
     let start = std::time::Instant::now();
-    let mut command = Command::new("sh");
+    // ensure the command is run in `sh`
+    let mut command_with_sh = Command::new("sh");
+    // only enable caching if cache_path is set
     let cppcheck_build_dir = if let Ok(cppcheck_env) = CppcheckEnv::try_load_from_env() {
         format!("--cppcheck-build-dir={}", cppcheck_env.cppcheck_cache_path)
     } else {
         "".to_string()
     };
-    command
+    let code_dir = code_path.as_ref();
+    let output_file = output_path.as_ref().display();
+    // build the command to run
+    command_with_sh
         .arg("-c")
-        .arg(&format!(
-            "{} {} -l 6 --addon=misra --xml --output-file={} {}",
-            executable,
-            code_path.as_ref(),
-            output_path.as_ref().display(),
-            cppcheck_build_dir
-        ))
+        .arg(format!("{executable} {code_dir} -l 6 --addon=misra --xml --output-file={output_file} {cppcheck_build_dir}"))
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
-    log::debug!(
-        "Running cppcheck START :: {:?} \n command: {:?}",
-        start.elapsed(),
-        command
-    );
-    let output = command.output();
+    log::debug!("Running cppcheck START :: {:?}", start.elapsed());
+    log::debug!("Shell command: {command_with_sh:?}");
+    let output = command_with_sh.output();
     log::debug!("Ran cppcheck END :: {:?}", start.elapsed());
     log::trace!("{:#?}", output);
 }
