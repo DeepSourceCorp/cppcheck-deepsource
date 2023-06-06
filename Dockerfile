@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # update the system and install any dependencies
 RUN apt-get update \
     && apt-get upgrade -y libksba-dev \
-    && apt-get install -y git cmake build-essential byacc grep lsb-release wget software-properties-common gnupg libcurl4-openssl-dev unzip lcov cppcheck --no-install-recommends # skipcq: DOK-DL3018
+    && apt-get install -y git cmake build-essential byacc libpcre3 libpcre3-dev grep lsb-release wget software-properties-common gnupg libcurl4-openssl-dev unzip lcov --no-install-recommends # skipcq: DOK-DL3018
 
 # Get LLVM
 ARG LLVM_VER=15
@@ -34,10 +34,17 @@ RUN mkdir /sentry-sdk \
 && cmake --install ./build --prefix "${SENTRY_INSTALL_DIR}"
 
 # Install spdlog
-RUN git clone https://github.com/gabime/spdlog.git \
+RUN git clone --depth=1 https://github.com/gabime/spdlog.git \
   && cd spdlog \
   && cmake -B build \
-  && cmake --build ./build --parallel \
+  && cmake --build build --parallel \
+  && cd build && make install
+
+# Install cppcheck
+RUN git clone --depth=1 https://github.com/danmar/cppcheck.git \
+  && cd cppcheck \
+  && cmake -B build -DHAVE_RULES=ON -DUSE_MATCHCOMPILER=ON -DCMAKE_BUILD_TYPE=RELEASE \
+  && cmake --build build --parallel 4 \
   && cd build && make install
 
 # -----------------------------------------------------------

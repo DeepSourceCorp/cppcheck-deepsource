@@ -90,12 +90,13 @@ fn _main() -> Result<(), Box<dyn Error>> {
 
     run_cppcheck(cppcheck_executable, env.code_path, &cppcheck_output_path);
 
+    log::debug!("{:#?}", files_set);
     let mut issue_occurrences = vec![];
     if let Some(cppcheck_results) = std::fs::read_to_string(cppcheck_output_path)
         .ok()
         .map(|src| quick_xml::de::from_str::<cppcheck::Results>(&src).unwrap())
     {
-        log::debug!("{:?}", cppcheck_results);
+        // log::debug!("{:?}", cppcheck_results);
         for error in cppcheck_results.errors.error {
             if let Some(issue_code) = cppcheck::mapping(&error.id) {
                 let Some(location) = error.location.as_ref().and_then(|l| l.get(0)) else {
