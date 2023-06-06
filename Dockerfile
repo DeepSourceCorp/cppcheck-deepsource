@@ -41,7 +41,7 @@ RUN git clone --depth=1 https://github.com/gabime/spdlog.git \
   && cd build && make install
 
 # Install cppcheck
-RUN git clone --depth=1 https://github.com/danmar/cppcheck.git \
+RUN git clone --depth=1 --branch 2.10.3 https://github.com/danmar/cppcheck.git \
   && cd cppcheck \
   && cmake -B build -DHAVE_RULES=ON -DUSE_MATCHCOMPILER=ON -DCMAKE_BUILD_TYPE=RELEASE \
   && cmake --build build --parallel 4 \
