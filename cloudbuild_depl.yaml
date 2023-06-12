@@ -4,6 +4,7 @@ steps:
   - name: 'gcr.io/kaniko-project/executor:v1.0.0'
     args:
     - --destination=us.gcr.io/deepsource-production/cppcheck-deepsource:$TAG_NAME
+    - --destination=us.gcr.io/deepsource-production/cppcheck-deepsource:latest
     - --dockerfile=Dockerfile
     - --cache=false
     - --snapshotMode=redo

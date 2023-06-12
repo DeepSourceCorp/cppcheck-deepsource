@@ -24,17 +24,17 @@ ENV LLVM_INSTALL_DIR "/usr/lib/llvm-${LLVM_VER}"
 ENV SENTRY_INSTALL_DIR="/usr/lib/sentry-sdk"
 
 # Get Sentry
-ARG SENTRY_TAG=0.5.2
+ARG SENTRY_TAG=0.6.3
 RUN mkdir /sentry-sdk \
-&& cd /sentry-sdk \
-&& wget --no-verbose "https://github.com/getsentry/sentry-native/releases/download/${SENTRY_TAG}/sentry-native.zip" \
-&& unzip sentry-native.zip \
-&& cmake -B ./build \
-&& cmake --build ./build --parallel \
-&& cmake --install ./build --prefix "${SENTRY_INSTALL_DIR}"
+  && cd /sentry-sdk \
+  && wget --no-verbose "https://github.com/getsentry/sentry-native/releases/download/${SENTRY_TAG}/sentry-native.zip" \
+  && unzip sentry-native.zip \
+  && cmake -B ./build \
+  && cmake --build ./build --parallel \
+  && cmake --install ./build --prefix "${SENTRY_INSTALL_DIR}"
 
 # Install spdlog
-RUN git clone --depth=1 https://github.com/gabime/spdlog.git \
+RUN git clone --depth=1 --branch v1.11.0 https://github.com/gabime/spdlog.git \
   && cd spdlog \
   && cmake -B build \
   && cmake --build build --parallel \
