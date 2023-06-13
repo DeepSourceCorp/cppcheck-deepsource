@@ -13,13 +13,13 @@ impl AnalyzerConfig {
     pub fn cxx_files(self) -> Vec<PathBuf> {
         self.files
             .into_iter()
+            .filter(|f| !f.is_symlink())
             .filter(|f| f.is_file())
             .filter(|f| {
                 f.extension()
-                    .map(|x| x.eq("cpp") | x.eq("c") | x.eq("h") | x.eq("hpp"))
+                    .map(|x| x.eq("cpp") | x.eq("c"))
                     .unwrap_or_default()
             })
-            .filter(|f| !f.is_symlink())
             // ignore files > ~25MB in size
             .filter(|f| {
                 !f.metadata()
@@ -34,4 +34,5 @@ impl AnalyzerConfig {
 pub struct AnalyzerMeta {
     pub name: String,
     pub enabled: bool,
+    // todo(swarnim): add misra_compliance: bool
 }

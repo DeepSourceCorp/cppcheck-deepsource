@@ -14,7 +14,7 @@ ARG LLVM_VER=15
 RUN wget --no-verbose https://apt.llvm.org/llvm.sh
 RUN chmod +x ./llvm.sh \
   && ./llvm.sh ${LLVM_VER} \
-  && apt-get -y install libclang-15-dev libclang-cpp15-dev --no-install-recommends \
+  && apt-get -y install libclang-${LLVM_VER}-dev libclang-cpp${LLVM_VER}-dev --no-install-recommends \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
