@@ -1,0 +1,18 @@
+[package]
+name = "cppcheck-deepsource"
+version = "0.2.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# serialize & deserialize
+serde = { version = "1.0.144", features = ["derive"] }
+# json support
+serde_json = "1.0.85"
+log = { version = "0.4.17" }
+atty = "0.2.14"
+walkdir = "2.3.2"
+quick-xml = { version = "0.28.0", features = ["serialize"] }
+
+env_struct = "0.1.3"

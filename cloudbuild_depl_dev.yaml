@@ -1,0 +1,13 @@
+timeout: 30m0s
+
+steps:
+- name: 'gcr.io/kaniko-project/executor:v1.0.0'
+  args:
+  - --destination=us.gcr.io/deepsource-dev/cppcheck-deepsource:dev
+  - --dockerfile=Dockerfile
+  - --cache=true
+  - --cache-ttl=24h
+  - --snapshotMode=redo
+
+options:
+  machineType: 'E2_HIGHCPU_8'

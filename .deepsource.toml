@@ -1,0 +1,23 @@
+version = 1
+
+test_patterns = [
+  "**/tests/**",
+  "**/*tests.rs"
+]
+
+exclude_patterns = [
+  "tests/**",
+  "**/tests/**",
+]
+
+[[analyzers]]
+name = "rust"
+
+  [analyzers.meta]
+  msrv = "stable"
+
+[[analyzers]]
+name = "secrets"
+
+[[transformers]]
+name = "rustfmt"
