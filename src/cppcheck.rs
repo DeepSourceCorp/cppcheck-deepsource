@@ -25,7 +25,8 @@ pub struct Error {
     #[serde(rename = "@cwe")]
     pub cwe: Option<String>,
     pub location: Option<Vec<Location>>,
-    pub symbol: Option<String>,
+    #[serde(default)]
+    pub symbol: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
