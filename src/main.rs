@@ -44,7 +44,7 @@ fn run_cppcheck<'a>(executable: &str, code_path: impl AsRef<str>, output_path: i
     // build the command to run
     command_with_sh
         .arg("-c")
-        .arg(format!("{executable} {code_dir} -l 6 --std=c++20 --addon=misra --xml --output-file={output_file} {cppcheck_build_dir}"))
+        .arg(format!("{executable} {code_dir} -l 6 --addon=misra --xml --output-file={output_file} {cppcheck_build_dir}"))
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
     log::debug!("Running cppcheck START :: {:?}", start.elapsed());
