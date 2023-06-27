@@ -1,3 +1,4 @@
 /target
 /cppcheck_result.json
 /cppcheck_error.xml
+analysis_config.json

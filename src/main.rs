@@ -109,7 +109,11 @@ fn _main() -> Result<(), Box<dyn Error>> {
                     format!(
                         "{} {}",
                         error.id,
-                        error.symbol.unwrap_or_else(|| "".to_string())
+                        error
+                            .symbol
+                            .get(0)
+                            .map(String::as_str)
+                            .unwrap_or_else(|| "")
                     )
                 } else {
                     error.msg
