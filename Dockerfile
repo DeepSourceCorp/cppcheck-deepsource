@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # update the system and install any dependencies
 RUN apt-get update \
     && apt-get upgrade -y libksba-dev \
-    && apt-get install software-properties-common \
+    && apt-get install -y software-properties-common \
     && add-apt-repository ppa:deadsnakes/ppa\
     && apt-get install -y git cmake build-essential byacc libpcre3 libpcre3-dev grep lsb-release wget gnupg libcurl4-openssl-dev unzip lcov python3.11 --no-install-recommends # skipcq: DOK-DL3018
 
