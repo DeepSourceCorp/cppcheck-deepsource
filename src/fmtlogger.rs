@@ -69,9 +69,7 @@ impl Log for Logger {
 pub fn default() {
     static LOGGER: OnceLock<Logger> = OnceLock::new();
     let logger = LOGGER.get_or_init(|| Logger {
-        level: std::env::var_os("RUST_LOG")
-            .map(|x| x.into_string().ok())
-            .flatten()
+        level: std::env::var("RUST_LOG")
             .map(|x| match x.as_str() {
                 "warn" => log::LevelFilter::Warn,
                 "trace" => log::LevelFilter::Trace,
