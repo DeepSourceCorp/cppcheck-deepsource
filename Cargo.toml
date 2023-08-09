@@ -10,7 +10,7 @@ edition = "2021"
 serde = { version = "1.0.144", features = ["derive"] }
 # json support
 serde_json = "1.0.85"
-log = { version = "0.4.17" }
+log = { version = "0.4.17", features = ["std"]}
 atty = "0.2.14"
 walkdir = "2.3.2"
 quick-xml = { version = "0.28.0", features = ["serialize"] }
