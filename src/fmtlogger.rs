@@ -1,3 +1,5 @@
+use std::sync::OnceLock;
+
 use log::{Level, LevelFilter, Log, Metadata, Record};
 
 const CLICOLOR_FORCE: &str = "CLICOLOR_FORCE";
@@ -65,11 +67,21 @@ impl Log for Logger {
 }
 
 pub fn default() {
-    const LOGGER: Logger = Logger {
-        level: LevelFilter::Trace,
-    };
-    log::set_max_level(LOGGER.level);
-    if let Err(err) = log::set_logger(&LOGGER) {
+    static LOGGER: OnceLock<Logger> = OnceLock::new();
+    let logger = LOGGER.get_or_init(|| Logger {
+        level: std::env::var("RUST_LOG")
+            .map(|x| match x.as_str() {
+                "warn" => log::LevelFilter::Warn,
+                "trace" => log::LevelFilter::Trace,
+                "error" => log::LevelFilter::Error,
+                "info" => log::LevelFilter::Info,
+                "debug" => log::LevelFilter::Debug,
+                _ => log::LevelFilter::Trace,
+            })
+            .unwrap_or(log::LevelFilter::Trace),
+    });
+    log::set_max_level(logger.level);
+    if let Err(err) = log::set_boxed_logger(Box::new(logger)) {
         // used const to allow for static lifetime
         eprintln!("attaching logger failed! shouldn't be possible: {:?}", err);
     }
