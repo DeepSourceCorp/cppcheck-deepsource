@@ -95,7 +95,7 @@ fn _main() -> Result<(), Box<dyn Error>> {
             ),
     );
 
-    let misra_enabled = std::env::args().any(|s| {
+    let misra_enabled = std::env::args().skip(1).any(|s| {
         // works with all --misra-enabled -misra-enabled misra_enabled misra_enabled etc.
         matches!(
             s.trim_start_matches("-").to_lowercase().as_str(),
