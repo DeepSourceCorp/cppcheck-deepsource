@@ -29,7 +29,12 @@ env_struct! {
     }
 }
 
-fn run_cppcheck<'a>(executable: &str, code_path: impl AsRef<str>, output_path: impl AsRef<Path>) {
+fn run_cppcheck<'a>(
+    executable: &str,
+    code_path: impl AsRef<str>,
+    output_path: impl AsRef<Path>,
+    misra_enabled: bool,
+) {
     let start = std::time::Instant::now();
     // ensure the command is run in `sh`
     let mut command_with_sh = Command::new("sh");
@@ -41,16 +46,18 @@ fn run_cppcheck<'a>(executable: &str, code_path: impl AsRef<str>, output_path: i
     };
     let code_dir = code_path.as_ref();
     let output_file = output_path.as_ref().display();
+    let misra_addon = if misra_enabled { "--addon=misra" } else { "" };
+    let output_format = "--xml";
     // build the command to run
     command_with_sh
         .arg("-c")
-        .arg(format!("{executable} {code_dir} -l 6 --addon=misra --xml --output-file={output_file} {cppcheck_build_dir}"))
+        .arg(format!("{executable} {code_dir} -l 6 {misra_addon} {output_format} --output-file={output_file} {cppcheck_build_dir}"))
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
-    log::debug!("Running cppcheck START :: {:?}", start.elapsed());
+    log::debug!("Running cppcheck start at, {:?}", start.elapsed());
     log::debug!("Shell command: {command_with_sh:?}");
     let output = command_with_sh.output();
-    log::debug!("Ran cppcheck END :: {:?}", start.elapsed());
+    log::debug!("End cppcheck run at, {:?}", start.elapsed());
     log::trace!("{:#?}", output);
 }
 
@@ -88,7 +95,19 @@ fn _main() -> Result<(), Box<dyn Error>> {
             ),
     );
 
-    run_cppcheck(cppcheck_executable, env.code_path, &cppcheck_output_path);
+    let misra_enabled = std::env::args().any(|s| {
+        // works with all --misra-enabled -misra-enabled misra_enabled misra_enabled etc.
+        matches!(
+            s.trim_start_matches("-").to_lowercase().as_str(),
+            "misra_enabled" | "misra-enabled" | "misraenabled"
+        )
+    });
+    run_cppcheck(
+        cppcheck_executable,
+        env.code_path,
+        &cppcheck_output_path,
+        misra_enabled,
+    );
 
     log::debug!("{:#?}", files_set);
     let mut issue_occurrences = vec![];
